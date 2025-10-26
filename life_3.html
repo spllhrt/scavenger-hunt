@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Life 3 - Behind Projector Screen</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #1a1a1a;
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px
+        }
+
+        .container {
+            max-width: 500px;
+            background: #2d2d2d;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 0 30px rgba(255, 140, 0, .3)
+        }
+
+        .cat {
+            font-size: 60px;
+            text-align: center;
+            margin-bottom: 20px;
+            animation: float 3s ease-in-out infinite
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0)
+            }
+
+            50% {
+                transform: translateY(-10px)
+            }
+        }
+
+        .life {
+            color: #ff8c00;
+            font-size: 14px;
+            text-align: center;
+            margin-bottom: 10px
+        }
+
+        h1 {
+            color: #ff8c00;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 24px
+        }
+
+        .story {
+            line-height: 1.6;
+            margin-bottom: 25px;
+            text-align: center
+        }
+
+        .keywords {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 20px
+        }
+
+        .keyword {
+            background: #ff8c00;
+            color: #000;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold
+        }
+
+        .instructions {
+            background: #3d3d3d;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 14px;
+            text-align: center
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="cat">🐱</div>
+        <div class="life">Life 3 of 9</div>
+        <h1>Behind Projector Screen</h1>
+        <div class="story">
+            You slipped behind the projector screen, where light and shadows danced around you in the darkness.
+        </div>
+        <div class="keywords">
+            <span class="keyword">PILLAR</span>
+            <span class="keyword">COLUMN</span>
+            <span class="keyword">POLE</span>
+        </div>
+        <div class="instructions">
+            Enter any of these keywords in the game to find your next life!
+        </div>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Black Cat's Nine Lives</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Georgia', serif;
+            background: linear-gradient(135deg, #1a0033 0%, #330066 50%, #1a0033 100%);
+            min-height: 100vh; color: #f0e6d2; overflow-x: hidden;
+        }
+        .stars { position: fixed; width: 100%; height: 100%; pointer-events: none; }
+        .star {
+            position: absolute; width: 2px; height: 2px; background: white;
+            border-radius: 50%; animation: twinkle 3s infinite;
+        }
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; } 50% { opacity: 1; }
+        }
+        .container { max-width: 800px; margin: 0 auto; padding: 20px; position: relative; z-index: 1; }
+        .header {
+            text-align: center; margin-bottom: 30px; padding: 30px 20px;
+            background: rgba(0, 0, 0, 0.5); border-radius: 15px;
+            border: 2px solid #ff6600; box-shadow: 0 0 30px rgba(255, 102, 0, 0.3);
+        }
+        h1 { font-size: 2.5em; color: #ff9933; text-shadow: 2px 2px 10px rgba(255, 102, 0, 0.8); margin-bottom: 10px; }
+        .subtitle { font-size: 1.2em; color: #ffcc99; font-style: italic; }
+        .progress-bar {
+            display: flex; justify-content: space-between; margin: 30px 0; padding: 20px;
+            background: rgba(0, 0, 0, 0.6); border-radius: 10px; border: 2px solid #663399;
+        }
+        .life-indicator {
+            width: 40px; height: 40px; border-radius: 50%; background: #333; border: 2px solid #666;
+            display: flex; align-items: center; justify-content: center; font-weight: bold;
+            transition: all 0.3s ease; position: relative;
+        }
+        .life-indicator.found {
+            background: #ff6600; border-color: #ff9933;
+            box-shadow: 0 0 15px rgba(255, 102, 0, 0.8); transform: scale(1.1);
+        }
+        .life-indicator.current { border-color: #ffcc00; animation: pulse 1.5s infinite; }
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 10px rgba(255, 204, 0, 0.5); }
+            50% { box-shadow: 0 0 25px rgba(255, 204, 0, 0.9); }
+        }
+        .game-screen { display: none; animation: fadeIn 0.5s ease; }
+        .game-screen.active { display: block; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .story-card {
+            background: rgba(0, 0, 0, 0.7); padding: 30px; border-radius: 15px;
+            border: 2px solid #ff6600; margin-bottom: 20px; box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
+        }
+        .story-title { font-size: 1.8em; color: #ff9933; margin-bottom: 15px; text-align: center; }
+        .story-text { font-size: 1.1em; line-height: 1.8; margin-bottom: 20px; color: #f0e6d2; }
+        .clue-box {
+            background: rgba(255, 102, 0, 0.1); padding: 20px; border-radius: 10px;
+            border: 2px solid #ff6600; margin-top: 20px;
+        }
+        .clue-title { font-size: 1.3em; color: #ffcc00; margin-bottom: 10px; font-weight: bold; }
+        .clue-text { font-style: italic; color: #ffcc99; font-size: 1.1em; }
+        .location-input { margin-top: 30px; text-align: center; }
+        .location-input input {
+            width: 100%; max-width: 400px; padding: 15px; font-size: 1.1em;
+            border: 2px solid #ff6600; border-radius: 10px; background: rgba(0, 0, 0, 0.5);
+            color: #ffcc99; text-align: center; margin-bottom: 15px;
+        }
+        .location-input input::placeholder { color: #996633; }
+        button {
+            padding: 15px 40px; font-size: 1.2em; background: linear-gradient(135deg, #ff6600, #ff9933);
+            color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold;
+            transition: all 0.3s ease; box-shadow: 0 5px 15px rgba(255, 102, 0, 0.4);
+        }
+        button:hover { transform: translateY(-2px); box-shadow: 0 7px 20px rgba(255, 102, 0, 0.6); }
+        button:active { transform: translateY(0); }
+        .error-message { color: #ff3333; margin-top: 10px; font-weight: bold; display: none; }
+        .success-message { color: #33ff33; margin-top: 10px; font-weight: bold; }
+        .timer { text-align: center; font-size: 1.5em; color: #ffcc00; margin: 20px 0; font-weight: bold; }
+        .cat-image { text-align: center; font-size: 5em; margin: 20px 0; filter: drop-shadow(0 0 10px rgba(255, 102, 0, 0.5)); }
+        .final-screen { text-align: center; }
+        .final-screen h2 { font-size: 2.5em; color: #ffcc00; margin-bottom: 20px; text-shadow: 0 0 20px rgba(255, 204, 0, 0.8); }
+        .stats {
+            background: rgba(0, 0, 0, 0.5); padding: 20px; border-radius: 10px;
+            margin: 20px 0; border: 2px solid #663399;
+        }
+        .stat-item { font-size: 1.3em; margin: 10px 0; color: #ffcc99; }
+        .intro-text { font-size: 1.2em; line-height: 1.8; margin-bottom: 20px; }
+        @media (max-width: 600px) {
+            h1 { font-size: 1.8em; }
+            .story-title { font-size: 1.4em; }
+            .life-indicator { width: 30px; height: 30px; font-size: 0.8em; }
+            .progress-bar { padding: 10px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="stars" id="stars"></div>
+    
+    <div class="container">
+        <div class="header">
+            <h1>🐈‍⬛ Black Cat's Nine Lives 🐈‍⬛</h1>
+            <p class="subtitle">A Halloween Scavenger Hunt</p>
+        </div>
+
+        <div class="timer" id="timer">Time: 00:00</div>
+
+        <div class="progress-bar" id="progressBar"></div>
+
+        <!-- Name Input Screen -->
+        <div class="game-screen active" id="nameScreen">
+            <div class="story-card">
+                <div class="cat-image">🐈‍⬛</div>
+                <h2 class="story-title">Enter Your Name, Brave Soul</h2>
+                <p class="intro-text">
+                    Before you begin your quest to free Luna, please tell us your name.
+                </p>
+                <div class="location-input">
+                    <input type="text" id="playerName" placeholder="Enter your name" maxlength="20">
+                    <br>
+                    <button onclick="savePlayerName()">Begin Your Quest</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Welcome Screen -->
+        <div class="game-screen" id="welcomeScreen">
+            <div class="story-card">
+                <div class="cat-image">🐈‍⬛</div>
+                <h2 class="story-title">Welcome, <span id="playerNameDisplay"></span></h2>
+                <p class="intro-text">
+                    Luna, a mysterious black cat, has been bound to this location for centuries, living and dying nine times. 
+                    Her spirit cannot rest until someone clever enough discovers all nine tales of her lives.
+                </p>
+                <p class="intro-text">
+                    Each life holds a clue to the next. Find all nine QR codes hidden throughout the venue to free her spirit 
+                    and claim the magical collar that will break the curse.
+                </p>
+                <p class="intro-text">
+                    <strong>Your quest begins under a table...</strong>
+                </p>
+                <div style="text-align: center; margin-top: 30px;">
+                    <button onclick="startGame()">Begin the Hunt</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Life Screens -->
+        <div class="game-screen" id="lifeScreen"></div>
+
+        <!-- Final Screen -->
+        <div class="game-screen" id="finalScreen">
+            <div class="story-card final-screen">
+                <div class="cat-image">✨🐈‍⬛✨</div>
+                <h2>Luna is Free!</h2>
+                <p class="intro-text">
+                    You have broken the curse, <span id="finalPlayerName"></span>! Luna's spirit can finally rest after centuries of wandering. 
+                    The magical collar is yours, and with it, the gratitude of a freed soul.
+                </p>
+                <div class="stats">
+                    <div class="stat-item">⏱️ Time Completed: <span id="finalTime"></span></div>
+                    <div class="stat-item">🎃 Lives Discovered: 9/9</div>
+                    <div class="stat-item">🏆 Status: Curse Breaker</div>
+                </div>
+                <p class="intro-text">
+                    <em>"Thank you, kind soul. May fortune follow you always."</em> - Luna
+                </p>
+                <div style="margin-top: 30px;">
+                    <button onclick="location.reload()">Play Again</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const lives = [
+            {
+                number: 1, title: "Life One: The Witch's Familiar",
+                story: "In my first life, I was a witch's familiar in 1692. I lived well until the witch trials came. They burned the cottage with me inside, but my mistress's dying spell gave me eight more chances. I hid under her wooden table as the flames consumed everything...",
+                clue: "My second life began where light is blocked, behind the veil where sun is stopped.",
+                location: "blinds", hints: ["Think about windows", "Where curtains hang", "Behind the blinds"]
+            },
+            {
+                number: 2, title: "Life Two: The Theater Cat",
+                story: "As a theater cat in Victorian times, I prowled behind the curtains and velvet drapes. One performance night, I got tangled in the stage curtains and fell into the orchestra pit. But I awoke again, seven lives remaining, forever wary of hanging things.",
+                clue: "Look where images are cast and stories come alive, pulled down to reveal what's inside.",
+                location: "projector screen", hints: ["Where movies are shown", "A white surface", "Behind the projector screen"]
+            },
+            {
+                number: 3, title: "Life Three: The Silent Film Era",
+                story: "In my third life, I haunted a silent movie theater in the 1920s. I loved the dancing shadows on the white screen. One night, a film caught fire and the whole theater went up in flames. The screen was the last thing I saw as smoke filled my lungs. Six lives left.",
+                clue: "Where strength stands tall and holds up all, I met my end against the wall.",
+                location: "pillar", hints: ["A structural support", "Stands vertical", "On or behind a pillar"]
+            },
+            {
+                number: 4, title: "Life Four: The Roman Forum",
+                story: "Life four found me as a street cat in ancient Rome, weaving between marble columns in the forum. During an earthquake, a pillar collapsed. I wasn't fast enough. Five lives remained as I crawled from the rubble, forever changed.",
+                clue: "I next drifted where colorful orbs float high, carrying letters toward the sky.",
+                location: "balloons", hints: ["Floating decorations", "Colorful and round", "Among the balloons"]
+            },
+            {
+                number: 5, title: "Life Five: The Carnival Cat",
+                story: "In my fifth incarnation, I lived at a carnival in the 1950s. Children would try to win prizes by popping balloons. I loved batting at the floating orbs. One day, a stray dart meant for a balloon found me instead. Four lives left, and a new fear of sharp things.",
+                clue: "Where reflections lie and faces peer, seek me in the glass so clear.",
+                location: "mirror", hints: ["Where you see yourself", "Reflective surface", "On or behind the mirror"]
+            },
+            {
+                number: 6, title: "Life Six: The Lady's Companion",
+                story: "My sixth life was in a grand estate as a lady's companion. I'd watch her prepare at her vanity mirror for hours. One jealous evening, her rival poisoned her perfume. I knocked the bottle over trying to stop her, and breathed the deadly fumes. Three lives remained, reflected in that cursed glass.",
+                clue: "I walked through a threshold, crossed to the other side, where entrance and exit both collide.",
+                location: "door", hints: ["A passageway", "You open and close it", "On or behind a door"]
+            },
+            {
+                number: 7, title: "Life Seven: The Ship's Cat",
+                story: "In life seven, I was a ship's cat sailing stormy seas. 'Never let a black cat cross your path' they said, but I had to cross through doorways to move about the ship. During a mutiny, I was caught between two closing iron doors in the cargo hold. Only two lives left, and I grew wary of thresholds.",
+                clue: "Where cold winds blow from metal veins, up high where temperature maintains.",
+                location: "aircon", hints: ["Keeps the room cool", "Mounted high", "Air conditioning unit"]
+            },
+            {
+                number: 8, title: "Life Eight: The Bodega Cat",
+                story: "My eighth life was as a bodega cat in hot summer streets. I loved sleeping on the air conditioning unit, where cool air met warm fur. One sweltering August night, the old unit sparked and caught fire while I slept. One life remained... and I knew I had to be careful.",
+                clue: "My final death came where you began your quest. Return to the very first nest. Full circle, as all must be, where your journey started, there you'll free me.",
+                location: "start", hints: ["Where did you begin?", "The first location", "Where you started"]
+            },
+            {
+                number: 9, title: "Life Nine: The Final Rest",
+                story: "In my ninth and final life, I returned to this very place, drawn by magic I couldn't resist. I searched for the collar that could break my curse - the one my first mistress enchanted. But time ran out on Halloween night, 1892. I've been a ghost ever since, waiting for someone clever enough to find what I could not. I died where this hunt began, overlooked by all who entered...",
+                clue: "Look beneath where the first table stood, where shadows pool and luck once was good. There lies my collar, waiting still, for one brave soul with iron will.",
+                location: "complete", hints: []
+            }
+        ];
+
+        let currentLife = 0, startTime, timerInterval, hintsUsed = 0, playerName = "";
+
+        function createStars() {
+            const starsContainer = document.getElementById('stars');
+            for (let i = 0; i < 100; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.animationDelay = Math.random() * 3 + 's';
+                starsContainer.appendChild(star);
+            }
+        }
+
+        function updateProgressBar() {
+            const progressBar = document.getElementById('progressBar');
+            progressBar.innerHTML = '';
+            
+            for (let i = 0; i < 9; i++) {
+                const indicator = document.createElement('div');
+                indicator.className = 'life-indicator';
+                indicator.textContent = i + 1;
+                
+                if (i < currentLife) indicator.classList.add('found');
+                else if (i === currentLife) indicator.classList.add('current');
+                
+                progressBar.appendChild(indicator);
+            }
+        }
+
+        function savePlayerName() {
+            const nameInput = document.getElementById('playerName').value.trim();
+            if (nameInput) {
+                playerName = nameInput;
+                document.getElementById('playerNameDisplay').textContent = playerName;
+                document.getElementById('nameScreen').classList.remove('active');
+                document.getElementById('welcomeScreen').classList.add('active');
+            } else {
+                alert("Please enter your name to continue.");
+            }
+        }
+
+        function startTimer() {
+            startTime = Date.now();
+            timerInterval = setInterval(() => {
+                const elapsed = Date.now() - startTime;
+                const minutes = Math.floor(elapsed / 60000);
+                const seconds = Math.floor((elapsed % 60000) / 1000);
+                document.getElementById('timer').textContent = 
+                    `Time: ${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            }, 1000);
+        }
+
+        function startGame() {
+            document.getElementById('welcomeScreen').classList.remove('active');
+            startTimer();
+            showLife(0);
+        }
+
+        function showLife(lifeIndex) {
+            currentLife = lifeIndex;
+            updateProgressBar();
+            
+            const life = lives[lifeIndex];
+            const lifeScreen = document.getElementById('lifeScreen');
+            
+            lifeScreen.innerHTML = `
+                <div class="story-card">
+                    <div class="cat-image">🐈‍⬛</div>
+                    <h2 class="story-title">${life.title}</h2>
+                    <p class="story-text">${life.story}</p>
+                    
+                    ${life.clue ? `
+                        <div class="clue-box">
+                            <div class="clue-title">🔮 Clue to Next Location:</div>
+                            <p class="clue-text">"${life.clue}"</p>
+                        </div>
+                    ` : ''}
+                    
+                    ${life.location !== 'complete' ? `
+                        <div class="location-input">
+                            <p style="margin-bottom: 15px; font-size: 1.1em; color: #ffcc99;">
+                                Enter the location keyword to find the next life:
+                            </p>
+                            <input 
+                                type="text" 
+                                id="locationInput" 
+                                placeholder="Type location (e.g., 'mirror', 'door')" 
+                                onkeypress="if(event.key === 'Enter') checkLocation()"
+                            >
+                            <br>
+                            <button onclick="checkLocation()">Submit Location</button>
+                            <button onclick="showHint()" style="background: linear-gradient(135deg, #663399, #9966cc); margin-left: 10px;">
+                                💡 Hint (${hintsUsed})
+                            </button>
+                            <p class="error-message" id="errorMsg"></p>
+                            <p class="success-message" id="successMsg" style="display: none;"></p>
+                            <div id="hintBox" style="margin-top: 20px; color: #ffcc00; font-style: italic;"></div>
+                        </div>
+                    ` : `
+                        <div style="text-align: center; margin-top: 30px;">
+                            <button onclick="completeGame()">Claim Your Reward</button>
+                        </div>
+                    `}
+                </div>
+            `;
+            
+            lifeScreen.classList.add('active');
+            
+            if (life.location !== 'complete') {
+                document.getElementById('locationInput').focus();
+            }
+        }
+
+        function checkLocation() {
+            const input = document.getElementById('locationInput').value.toLowerCase().trim();
+            const correctLocation = lives[currentLife].location.toLowerCase();
+            const errorMsg = document.getElementById('errorMsg');
+            const successMsg = document.getElementById('successMsg');
+            
+            errorMsg.style.display = 'none';
+            successMsg.style.display = 'none';
+            
+            const validAnswers = {
+                'blinds': ['blind', 'blinds', 'window'],
+                'projector screen': ['projector', 'screen', 'projector screen'],
+                'pillar': ['pillar', 'column', 'pole'],
+                'balloons': ['balloon', 'balloons'],
+                'mirror': ['mirror'],
+                'door': ['door', 'doorway'],
+                'aircon': ['aircon', 'ac', 'air conditioner', 'air conditioning'],
+                'start': ['start', 'beginning', 'table', 'under table']
+            };
+            
+            const acceptable = validAnswers[correctLocation] || [correctLocation];
+            
+            if (acceptable.some(ans => input.includes(ans))) {
+                successMsg.textContent = '✓ Correct! Moving to next life...';
+                successMsg.style.display = 'block';
+                
+                setTimeout(() => {
+                    document.getElementById('lifeScreen').classList.remove('active');
+                    setTimeout(() => {
+                        showLife(currentLife + 1);
+                    }, 300);
+                }, 1500);
+            } else {
+                errorMsg.textContent = '✗ Not quite right. Try again or use a hint!';
+                errorMsg.style.display = 'block';
+                document.getElementById('locationInput').value = '';
+            }
+        }
+
+        function showHint() {
+            const life = lives[currentLife];
+            const hintBox = document.getElementById('hintBox');
+            
+            if (hintsUsed < life.hints.length) {
+                hintBox.textContent = `Hint: ${life.hints[hintsUsed]}`;
+                hintsUsed++;
+            } else {
+                hintBox.textContent = 'No more hints available for this location!';
+            }
+        }
+
+        function completeGame() {
+            clearInterval(timerInterval);
+            
+            const elapsed = Date.now() - startTime;
+            const minutes = Math.floor(elapsed / 60000);
+            const seconds = Math.floor((elapsed % 60000) / 1000);
+            const timeString = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            
+            document.getElementById('finalTime').textContent = timeString;
+            document.getElementById('finalPlayerName').textContent = playerName;
+            document.getElementById('lifeScreen').classList.remove('active');
+            
+            setTimeout(() => {
+                document.getElementById('finalScreen').classList.add('active');
+                currentLife = 9;
+                updateProgressBar();
+            }, 300);
+        }
+
+        // Initialize
+        createStars();
+        updateProgressBar();
+    </script>
+</body>
+</html>
